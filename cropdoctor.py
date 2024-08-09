@@ -28,7 +28,7 @@ def process_image_with_pil(image_file):
     # Open image using PIL
     image = Image.open(image_file).convert("RGB")
     
-    # Example processing: Convert to grayscale
+    # Example processing: Convert to grayscale (if needed)
     processed_image = image.convert("L")
     
     return processed_image
