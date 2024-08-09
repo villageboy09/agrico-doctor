@@ -1,8 +1,8 @@
 import os
-import google.generativeai as genai
-import streamlit as st
+import requests
 from PIL import Image
-import io
+import streamlit as st
+from io import BytesIO
 
 # Set the environment variable for API key
 os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
@@ -11,10 +11,6 @@ os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
 api_key = os.environ.get("API_KEY")
 if not api_key:
     raise ValueError("API key is not set in environment variables.")
-genai.configure(api_key=api_key)
-
-# Initialize the model
-model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Define supported crops
 SUPPORTED_CROPS = [
@@ -23,29 +19,38 @@ SUPPORTED_CROPS = [
     "soybean", "sugarcane"
 ]
 
-# Function to process the image using PIL
-def process_image_with_pil(image_file):
+# Function to process the image using Pillow
+def process_image_with_pillow(image_file):
     # Open image using PIL
     image = Image.open(image_file).convert("RGB")
     
-    # Example processing: Convert to grayscale (if needed)
+    # Example processing: Convert to grayscale
     processed_image = image.convert("L")
     
     return processed_image
 
-# Function to upload an image using File API
+# Function to upload an image and return the file URI
 def upload_image(image_file):
     try:
-        # Process the image with PIL
-        processed_image = process_image_with_pil(image_file)
+        # Process the image with Pillow
+        processed_image = process_image_with_pillow(image_file)
         
         # Save the processed image to a temporary file
         temp_path = '/tmp/temp_image.png'
         processed_image.save(temp_path)
 
-        # Upload the image using File API
-        response = genai.upload_file(path=temp_path, display_name="Processed Image")
-        return response.uri
+        # Upload the image using requests
+        url = "https://generativeai.googleapis.com/v1/files:upload"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        files = {'file': open(temp_path, 'rb')}
+        response = requests.post(url, headers=headers, files=files)
+        
+        if response.status_code == 200:
+            file_uri = response.json().get('uri')
+            return file_uri
+        else:
+            st.error(f"Failed to upload image. Status code: {response.status_code}")
+            return None
     except Exception as e:
         st.error(f"Error uploading image: {e}")
         return None
@@ -58,8 +63,22 @@ def analyze_image(image_uri):
             "Identify any crop diseases from the uploaded image and provide recommendations for the following crops: "
             + ", ".join(SUPPORTED_CROPS) + "."
         )
-        response = model.generate_content([image_uri, prompt])
-        return response.text
+        url = "https://generativeai.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "content": [image_uri, prompt]
+        }
+        response = requests.post(url, headers=headers, json=payload)
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result.get('text', 'No recommendations found.')
+        else:
+            st.error(f"Failed to analyze image. Status code: {response.status_code}")
+            return "Unable to generate recommendations."
     except Exception as e:
         st.error(f"Error analyzing image: {e}")
         return "Unable to generate recommendations."
