@@ -2,3 +2,4 @@ google-generativeai
 streamlit
 pillow
 requests
+cv2
