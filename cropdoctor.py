@@ -1,4 +1,6 @@
 import os
+import cv2
+import numpy as np
 import google.generativeai as genai
 import streamlit as st
 from PIL import Image
@@ -23,21 +25,32 @@ SUPPORTED_CROPS = [
     "soybean", "sugarcane"
 ]
 
+# Function to process the image using OpenCV
+def process_image_with_opencv(image_file):
+    # Open image using PIL and convert to OpenCV format
+    image = Image.open(image_file).convert("RGB")
+    open_cv_image = np.array(image)
+    open_cv_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2BGR)
+    
+    # Example processing: Convert to grayscale
+    processed_image = cv2.cvtColor(open_cv_image, cv2.COLOR_BGR2GRAY)
+    
+    # Convert back to PIL Image format
+    processed_image_pil = Image.fromarray(processed_image)
+    return processed_image_pil
+
 # Function to upload an image using File API
 def upload_image(image_file):
     try:
-        image = Image.open(image_file)
-        image_bytes = io.BytesIO()
-        image.save(image_bytes, format=image.format)
-        image_bytes.seek(0)
-
-        # Save the image to a temporary file
+        # Process the image with OpenCV
+        processed_image = process_image_with_opencv(image_file)
+        
+        # Save the processed image to a temporary file
         temp_path = '/tmp/temp_image.png'
-        with open(temp_path, 'wb') as f:
-            f.write(image_bytes.read())
+        processed_image.save(temp_path)
 
         # Upload the image using File API
-        response = genai.upload_file(path=temp_path, display_name="Uploaded Image")
+        response = genai.upload_file(path=temp_path, display_name="Processed Image")
         return response.uri
     except Exception as e:
         st.error(f"Error uploading image: {e}")
