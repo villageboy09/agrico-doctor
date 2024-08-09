@@ -16,6 +16,13 @@ genai.configure(api_key=api_key)
 # Initialize the model
 model = genai.GenerativeModel('gemini-1.5-flash')
 
+# Define supported crops
+SUPPORTED_CROPS = [
+    "tomato", "chilli", "paddy", "pearl millet", 
+    "sorghum", "wheat", "maize", "groundnut", 
+    "soybean", "sugarcane"
+]
+
 # Function to upload an image using File API
 def upload_image(image_file):
     try:
@@ -39,7 +46,12 @@ def upload_image(image_file):
 # Function to analyze image and get recommendations
 def analyze_image(image_uri):
     try:
-        response = model.generate_content([image_uri, 'Identify any crop diseases and provide recommendations.'])
+        # Create a prompt based on supported crops
+        prompt = (
+            "Identify any crop diseases from the uploaded image and provide recommendations for the following crops: "
+            + ", ".join(SUPPORTED_CROPS) + "."
+        )
+        response = model.generate_content([image_uri, prompt])
         return response.text
     except Exception as e:
         st.error(f"Error analyzing image: {e}")
@@ -66,3 +78,5 @@ if uploaded_file is not None:
             st.error("Failed to upload image. Please try again.")
     except Exception as e:
         st.error(f"An unexpected error occurred: {e}")
+else:
+    st.info("Please upload an image file.")
