@@ -39,8 +39,8 @@ def upload_image(image_file):
         temp_path = '/tmp/temp_image.png'
         processed_image.save(temp_path)
 
-        # Upload the image using requests
-        url = "https://generativeai.googleapis.com/v1/files:upload"
+        # Update URL with correct endpoint for file upload
+        url = "https://generativeai.googleapis.com/v1/files:upload"  # Update this URL
         headers = {"Authorization": f"Bearer {api_key}"}
         files = {'file': open(temp_path, 'rb')}
         response = requests.post(url, headers=headers, files=files)
@@ -63,7 +63,8 @@ def analyze_image(image_uri):
             "Identify any crop diseases from the uploaded image and provide recommendations for the following crops: "
             + ", ".join(SUPPORTED_CROPS) + "."
         )
-        url = "https://generativeai.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
+        # Update URL with correct endpoint for content generation
+        url = "https://generativeai.googleapis.com/v1/models/gemini-1.5-flash:generateContent"  # Update this URL
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
