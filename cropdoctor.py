@@ -18,24 +18,32 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Function to upload an image using File API
 def upload_image(image_file):
-    image = Image.open(image_file)
-    image_bytes = io.BytesIO()
-    image.save(image_bytes, format=image.format)
-    image_bytes.seek(0)
+    try:
+        image = Image.open(image_file)
+        image_bytes = io.BytesIO()
+        image.save(image_bytes, format=image.format)
+        image_bytes.seek(0)
 
-    # Save the image to a temporary file
-    temp_path = '/tmp/temp_image.png'
-    with open(temp_path, 'wb') as f:
-        f.write(image_bytes.read())
+        # Save the image to a temporary file
+        temp_path = '/tmp/temp_image.png'
+        with open(temp_path, 'wb') as f:
+            f.write(image_bytes.read())
 
-    # Upload the image using File API
-    response = genai.upload_file(path=temp_path, display_name="Uploaded Image")
-    return response.uri
+        # Upload the image using File API
+        response = genai.upload_file(path=temp_path, display_name="Uploaded Image")
+        return response.uri
+    except Exception as e:
+        st.error(f"Error uploading image: {e}")
+        return None
 
 # Function to analyze image and get recommendations
 def analyze_image(image_uri):
-    response = model.generate_content([image_uri, 'Identify any crop diseases and provide recommendations.'])
-    return response.text
+    try:
+        response = model.generate_content([image_uri, 'Identify any crop diseases and provide recommendations.'])
+        return response.text
+    except Exception as e:
+        st.error(f"Error analyzing image: {e}")
+        return "Unable to generate recommendations."
 
 # Streamlit app interface
 st.title('Crop Disease Detection and Recommendations')
@@ -50,8 +58,11 @@ if uploaded_file is not None:
     # Upload image and analyze
     try:
         image_uri = upload_image(uploaded_file)
-        recommendations = analyze_image(image_uri)
-        st.subheader('Recommendations')
-        st.write(recommendations)
+        if image_uri:
+            recommendations = analyze_image(image_uri)
+            st.subheader('Recommendations')
+            st.write(recommendations)
+        else:
+            st.error("Failed to upload image. Please try again.")
     except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.error(f"An unexpected error occurred: {e}")
