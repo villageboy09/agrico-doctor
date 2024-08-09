@@ -3,7 +3,6 @@ import google.generativeai as genai
 import streamlit as st
 from PIL import Image
 import io
-import requests
 
 # Set the environment variable for API key
 os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
@@ -24,8 +23,13 @@ def upload_image(image_file):
     image.save(image_bytes, format=image.format)
     image_bytes.seek(0)
 
+    # Save the image to a temporary file
+    temp_path = '/tmp/temp_image.png'
+    with open(temp_path, 'wb') as f:
+        f.write(image_bytes.read())
+
     # Upload the image using File API
-    response = genai.upload_file(file=image_bytes, display_name="Uploaded Image")
+    response = genai.upload_file(path=temp_path, display_name="Uploaded Image")
     return response.uri
 
 # Function to analyze image and get recommendations
