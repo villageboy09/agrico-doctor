@@ -17,11 +17,7 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Define supported crops
-SUPPORTED_CROPS = [
-    "tomato", "chilli", "paddy", "pearl millet", 
-    "sorghum", "wheat", "maize", "groundnut", 
-    "soybean", "sugarcane"
-]
+SUPPORTED_CROPS = ["corn", "wheat", "tomatoes", "potatoes", "soybeans"]
 
 # Function to upload an image using File API
 def upload_image(image_file):
