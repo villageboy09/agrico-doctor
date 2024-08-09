@@ -17,23 +17,34 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Define supported crops
-SUPPORTED_CROPS = ["corn", "wheat", "tomatoes", "potatoes", "soybeans"]
+SUPPORTED_CROPS = [
+    "tomato", "chilli", "paddy", "pearl millet", 
+    "sorghum", "wheat", "maize", "groundnut", 
+    "soybean", "sugarcane"
+]
+
+# Function to process the image using PIL
+def process_image_with_pil(image_file):
+    # Open image using PIL
+    image = Image.open(image_file).convert("RGB")
+    
+    # Example processing: Convert to grayscale
+    processed_image = image.convert("L")
+    
+    return processed_image
 
 # Function to upload an image using File API
 def upload_image(image_file):
     try:
-        image = Image.open(image_file)
-        image_bytes = io.BytesIO()
-        image.save(image_bytes, format=image.format)
-        image_bytes.seek(0)
-
-        # Save the image to a temporary file
+        # Process the image with PIL
+        processed_image = process_image_with_pil(image_file)
+        
+        # Save the processed image to a temporary file
         temp_path = '/tmp/temp_image.png'
-        with open(temp_path, 'wb') as f:
-            f.write(image_bytes.read())
+        processed_image.save(temp_path)
 
         # Upload the image using File API
-        response = genai.upload_file(path=temp_path, display_name="Uploaded Image")
+        response = genai.upload_file(path=temp_path, display_name="Processed Image")
         return response.uri
     except Exception as e:
         st.error(f"Error uploading image: {e}")
