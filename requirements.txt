@@ -1,5 +1,4 @@
 google-generativeai
 streamlit
 pillow
-PIL
 requests
