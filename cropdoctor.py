@@ -1,19 +1,17 @@
 import os
-
-# Set the environment variable
-os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
-
-
 import google.generativeai as genai
-import os
 import streamlit as st
 from PIL import Image
 import io
 
+# Set the environment variable (use this only for local testing; do not hardcode API keys in production)
+os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
+
 # Access the API key from environment variables
 api_key = os.environ.get("API_KEY")
 if not api_key:
-    raise ValueError("API key is not set in environment variables.")
+    st.error("API key is not set in environment variables.")
+    st.stop()
 
 # Configure the API
 genai.configure(api_key=api_key)
@@ -28,12 +26,14 @@ def upload_image(image_file):
     image.save(image_bytes, format=image.format)
     image_bytes.seek(0)
     response = genai.upload_file(file=image_bytes, display_name="Uploaded Image")
-    return response.uri
+    return response['uri']
 
 # Function to analyze image and get recommendations
 def analyze_image(image_uri):
-    response = model.generate_content([image_uri, 'Identify any crop diseases and provide recommendations.'])
-    return response.text
+    response = model.generate_content(
+        [image_uri, 'Identify any crop diseases and provide recommendations.']
+    )
+    return response['text']
 
 # Streamlit app interface
 st.title('Crop Disease Detection and Recommendations')
@@ -53,4 +53,3 @@ if uploaded_file is not None:
         st.write(recommendations)
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
