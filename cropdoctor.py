@@ -1,15 +1,25 @@
-# -*- coding: utf-8 -*-
-import streamlit as st
+import os
+
+# Set the environment variable
+os.environ["API_KEY"] = "AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"
+
+
 import google.generativeai as genai
 import os
+import streamlit as st
 from PIL import Image
 import io
 
-# Configure the API key
-genai.configure(api_key=os.environ["AIzaSyCroPtzjFYNxHBuf_f-S_10cxu-B9TBhQI"])
+# Access the API key from environment variables
+api_key = os.environ.get("API_KEY")
+if not api_key:
+    raise ValueError("API key is not set in environment variables.")
+
+# Configure the API
+genai.configure(api_key=api_key)
 
 # Initialize the model
-model = genai.GenerativeModel('gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Function to upload an image
 def upload_image(image_file):
@@ -43,3 +53,4 @@ if uploaded_file is not None:
         st.write(recommendations)
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
